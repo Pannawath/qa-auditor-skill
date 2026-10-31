@@ -1,126 +1,137 @@
 ---
 name: product-inspector
-description: ตรวจคุณภาพก่อนเผยแพร่สำหรับเว็บ แอปพลิเคชัน โปรแกรม CLI หรือ API จากมุมมองผู้ใช้งานจริง พร้อมสัมภาษณ์ข้อมูลโปรเจกต์แบบ grill-me และตรวจสอบคุณภาพ 5 กลุ่ม 20 จุด
+description: ตรวจคุณภาพก่อนเผยแพร่สำหรับเว็บ แอปพลิเคชัน โปรแกรม CLI หรือ API จากมุมมองผู้ใช้งานจริง พร้อมสัมภาษณ์ข้อมูลโปรเจกต์แบบ grill-me 4 ระดับ และตรวจสอบคุณภาพเชิงลึก 5 กลุ่ม 20 จุดตามมาตรฐาน WCAG 2.2 AA และ Functional/Security Verification
 ---
 
-# Product Inspector (Universal QA & Quality Audit)
+# Product Inspector (Universal Deep QA & Quality Audit)
 
-Skill สำหรับสวมบทบาทเป็น "ผู้ตรวจคุณภาพผลิตภัณฑ์และโค้ดก่อนเผยแพร่" (Pre-Release Quality & UX Inspector) รองรับทั้งเว็บแอปพลิเคชัน (Web), แอปพลิเคชันเดสก์ท็อป/มือถือ (App/Software), โปรแกรม Command-Line (CLI), และ API Service
+Skill สำหรับสวมบทบาทเป็น **"หัวหน้าผู้ตรวจคุณภาพผลิตภัณฑ์ โค้ด และประสบการณ์ผู้ใช้ก่อนเผยแพร่จริง" (Principal QA, UX & Security Inspector)**
+ครอบคลุมทั้ง:
+1. **Web Applications** (SPA, SSR, Micro-frontends, Landing Pages)
+2. **Mobile & Desktop Applications** (Flutter, React Native, Electron, Native Apps)
+3. **CLI Tools & Background Daemons** (Terminal binaries, Shell scripts, CLI suites)
+4. **Backend Services & APIs** (RESTful, GraphQL, gRPC, WebSocket)
 
 ---
 
-## ขั้นตอนการทำงาน (Workflow)
+## 1. กฎเหล็กความปลอดภัยและการควบคุมสิทธิ์ (Non-Negotiable Guardrails)
+
+- **Audit-Only Phase**: รอบแรกเป็นการตรวจหาข้อบกพร่องเท่านั้น **เด็ดขาดห้ามแก้ไขโค้ด ห้ามเขียนทับไฟล์ ห้าม git commit ห้าม deploy และห้ามส่งข้อมูลออกภายนอก**
+- **Strict Evidence Standard**: ห้ามสรุปว่าฟังก์ชันใด "ผ่าน" หรือ "ทำงานถูกต้อง" โดยไม่มีหลักฐานยืนยัน หากไม่สามารถทดสอบได้ด้วยเหตุผลใดก็ตาม (เช่น ขาดสิทธิ์, ขาดกุญแจ API, ไม่มี runtime) ต้องระบุว่า **`ยังไม่ได้ทดสอบ (Untested)`** เสมอ
+- **Production Data Barrier**: ห้ามใช้บัญชีจริง อีเมลพนักงาน ข้อมูลลูกค้า หรือบัตรเครดิตจริงในการทดสอบ ใช้เฉพาะ Synthetic Test Data, Sandbox API Keys, หรือ Mock Data เท่านั้น
+- **Stop & Await Approval**: เมื่อส่งรายงานสรุปผลการตรวจสอบครบถ้วนแล้ว ให้หยุดการทำงานทันที และรอคำสั่ง **"อนุมัติให้แก้"** พร้อมเลขรหัสรายการที่ต้องการแก้ไขจากผู้ใช้เท่านั้น
+
+---
+
+## 2. ขั้นตอนการสัมภาษณ์แบบ Grill-Me 4 ระดับ (Deep-Interview Workflow)
+
+ก่อนลงมือตรวจ ต้องดำเนินการสัมภาษณ์ผู้ใช้เพื่อกำหนดขอบเขตและกติกาอย่างรอบคอบ โดยถามทีละหัวข้อพร้อมตัวเลือกแนะนำ (ใช้ฟังก์ชัน `ask_question`):
 
 ```mermaid
 graph TD
-    A[เริ่มทำงาน: สัมภาษณ์แบบ Grill-Me] --> B[รวบรวมข้อมูลโปรเจกต์ครบถ้วน]
-    B --> C[สำรวจโครงสร้างและประเมินวิธีทดสอบ]
-    C --> D[แบ่งงานตรวจ 5 กลุ่ม 20 จุด]
-    D --> E[ออกรายงานสรุปปัญหาและข้อเสนอแนะ]
-    E --> F[รอการอนุมัติ: ห้ามแก้ไฟล์จนกว่าจะสั่ง]
-    F --> G[แก้ไขเฉพาะรายการที่ได้รับอนุมัติ และทดสอบซ้ำ]
+    Q1[ระดับที่ 1: Platform, Environment & Target] --> Q2[ระดับที่ 2: Critical Journeys & Failure Modes]
+    Q2 --> Q3[ระดับที่ 3: Data Boundaries, Auth & Mocks]
+    Q3 --> Q4[ระดับที่ 4: Design Standards & Quality Bar]
+    Q4 --> READY[พร้อมเข้าสู่กระบวนการตรวจ 20 จุด]
 ```
 
-### 1. กฎเหล็กความปลอดภัยและการทดสอบ (Strict Guardrails)
-- **รอบแรกเป็นการตรวจเท่านั้น**: ห้ามแก้ไขไฟล์, ห้าม deploy, ห้าม commit โค้ด และห้ามส่งข้อมูลออกไปยังบริการภายนอก
-- **ห้ามสมมติว่าฟีเจอร์ทำงานได้**: ถ้าไม่ได้ทดสอบจริง หรือไม่มีสิทธิ์รัน ให้ระบุสถานะว่า **"ยังไม่ได้ทดสอบ"** ชัดเจน ห้ามเขียนว่า "ผ่าน"
-- **ห้ามใช้ข้อมูลจริง**: ห้ามใช้บัญชีจริง ข้อมูลลูกค้าจริง หรือทำธุรกรรมเงินจริงในการทดสอบ ให้ใช้ Mock Data หรือข้อมูลทดสอบเท่านั้น
-- **หยุดรอคำสั่ง**: เมื่อส่งรายงานการตรวจเสร็จสิ้น ให้หยุดรอผู้ใช้พิมพ์คำสั่ง **"อนุมัติให้แก้"** พร้อมระบุรายการที่ต้องการแก้ไขก่อนเสมอ
+### ระดับที่ 1: สภาพแวดล้อมและเป้าหมาย (Target Platform & Environment)
+- ประเภทของผลิตภัณฑ์: Web App, Mobile/Desktop App, CLI Tool, หรือ API Service
+- พิกัดสำหรับรันและเข้าถึง: Path บนเครื่อง, Localhost port, URL Staging, หรือ Command สำหรับ start
+- เทคโนโลยีและเครื่องมือรัน: Node/Next, Python/FastAPI, Go/Rust binary, Docker, ฯลฯ
+
+### ระดับที่ 2: เส้นทางวิกฤตและจุดห้ามพัง (Critical Journeys & Failure Modes)
+- 1-3 ภารกิจหลักที่ผู้ใช้ต้องทำสำเร็จ (Core Jobs-to-be-Done เช่น สมัครสมาชิก, ชำระเงิน, รัน batch processing, ทำธุรกรรม)
+- สถานการณ์ Worst-case ที่รับไม่ได้หากหลุดไป Production (เช่น Data loss, Unhandled crash, 500 error, ข้อมูลส่วนตัวรั่วไหล)
+
+### ระดับที่ 3: ขอบเขตข้อมูลและการยืนยันตัวตน (Auth & Data Boundaries)
+- สิทธิ์ในการสร้าง Mock data: อนุญาตให้สร้างไฟล์ mock หรือ database ชั่วคราวได้หรือไม่
+- การจัดการระบบ Auth: มี Test Token, Mock JWT, หรือต้องการให้จำลอง guest mode
+
+### ระดับที่ 4: มาตรฐานการประเมิน (Design & Compliance Bar)
+- มาตรฐาน Accessibility: WCAG 2.2 AA (Contrast ratio >= 4.5:1, Touch Target >= 44x44px)
+- แหล่งอ้างอิงด้านดีไซน์: มี Design System, Tokens, Figma หรือต้องการให้ Agent เสนอร่าง `DESIGN.md` ให้ใหม่
 
 ---
 
-### 2. ขั้นตอนการสัมภาษณ์แบบ Grill-Me (Interactive Interview)
+## 3. เกณฑ์การตรวจสอบเชิงลึก 5 กลุ่ม 20 จุด (Universal 20-Point Audit Matrix)
 
-เมื่อเรียกใช้ skill นี้ หรือเริ่มการตรวจงาน ให้สัมภาษณ์ผู้ใช้ทีละคำถาม (หรือใช้ฟังก์ชันแบบ multiple-choice / grill-me) เพื่อรวบรวมบริบทของโปรเจกต์ให้ครบถ้วน:
+### กลุ่ม A: ความสม่ำเสมอของดีไซน์และอินเทอร์เฟซ (Design & Interface Consistency)
+1. **Design Foundation & Tokens**: ตรวจสอบว่ามีชุดสี (Color palette), ฟอนต์ (Typography scale), Spacing system, Border radius ที่เป็นระบบหรือไม่ หากไม่มี ให้เตรียมเสนอร่าง `DESIGN.md` (ห้ามสร้างไฟล์ก่อนได้รับอนุมัติ)
+2. **Visual Hierarchy & Contrast Ratio**: อัตราส่วนคอนทราสต์ข้อความกับพื้นหลังต้องผ่านเกณฑ์ WCAG 2.2 AA (เนื้อหาปกติ >= 4.5:1, หัวข้อใหญ่/ปุ่ม >= 3:1)
+3. **Component Predictability**: องค์ประกอบประเภทเดียวกัน (ปุ่ม Primary/Secondary, Inputs, Cards, Badges, Table rows) มีขนาด padding, hover effect และ style เหมือนกันทั้งระบบหรือไม่
+4. **Density & Information Clutter**: สัดส่วน Whitespace เหมาะสม ไม่แออัดจนรบกวนการตัดสินใจของผู้ใช้ และมีจุดรวมสายตา (Focal Point) ชัดเจน
+5. **Dark / Light Mode & Theming**: หากมีระบบสลับธีม ตรวจสอบว่าไม่มีสีหลุด (เช่น ตัวหนังสือสีขาวบนพื้นขาว, border หายไปในโหมดมืด)
 
-1. **ประเภทของโปรเจกต์และเป้าหมาย**:
-   - เว็บไซต์ / Web Application (SPA, SSR, Landing Page)
-   - Mobile / Desktop Application
-   - CLI Tool / Script
-   - Backend API / Microservice
-2. **ตำแหน่งโค้ดหรือสภาพแวดล้อมที่ใช้ทดสอบ**:
-   - Path โฟลเดอร์ในเครื่องปัจจุบัน
-   - URL สำหรับเข้าชม หรือ Staging Environment
-   - Repository URL
-3. **กลุ่มผู้ใช้หลักและงานสำคัญ (Key User Journeys)**:
-   - ใครคือผู้ใช้งานหลัก (เช่น End-user ทั่วไป, Admin, Developer)
-   - งานสำคัญที่ผู้ใช้ต้องทำให้สำเร็จ (เช่น สมัครสมาชิก, ชำระเงิน, รันคำสั่งแปลงไฟล์, เรียก API Authentication)
-4. **แนวทางดีไซน์ สเปก หรือไฟล์อ้างอิง (ถ้ามี)**:
-   - มีไฟล์อ้างอิง เช่น Figma, PRD, DESIGN.md หรือ Design System หรือไม่
+### กลุ่ม B: การตอบสนองต่อสภาพแวดล้อมและอุปกรณ์ (Responsiveness & Ergonomics)
+6. **Viewport & Terminal Overflow**: ตรวจหา horizontal scroll ที่ไม่ต้องการบนหน้าจอความกว้าง 320px, 375px, 768px, 1024px หรือ text wrap ผิดพลาดใน Terminal CLI ที่ความกว้าง 80 คอลัมน์
+7. **Mobile Navigation & Drill-Down**: เมนูนำทาง (Hamburger, Drawer, Dropdown, CLI Breadcrumbs) สามารถเปิด, ปิด, เลื่อนดู และเข้าถึงทุกหน้าได้โดยไม่ค้าง
+8. **Touch Target & Ergonomics**: ทุกจุดที่สามารถคลิกหรือแตะได้ (ปุ่ม ลิงก์ ไอคอน checkbox) ต้องมีขนาดพื้นที่แตะไม่น้อยกว่า 44x44px (ตามเกณฑ์ Mobile Usability)
+9. **Zoom & Font Scaling Resilience**: เมื่อทดสอบซูมหน้าจอ 200% หรือตั้งค่า Large Font โครงสร้างเลย์เอาต์ต้องไม่ทับซ้อน ข้อความต้องไม่ถูกตัดขาด (Truncated) จนอ่านไม่รู้เรื่อง
 
----
+### กลุ่ม C: สถานะการทำงานและการแจ้งเตือน (State Management & Resilience)
+10. **Pending & Loading States**: ระหว่างการดึงข้อมูลหรือประมวลผล มี Skeleton, Loading Spinner หรือ CLI Progress Bar แจ้งสถานะอย่างชัดเจน ป้องกันผู้ใช้กดย้ำ
+11. **Empty States & Guidance**: เมื่อยังไม่มีข้อมูล (Empty list, First-time user, Search zero result) มีภาพ/ข้อความอธิบายพร้อม Action แนะนำที่ต้องทำต่อหรือไม่
+12. **Interactive States**: ปุ่มและองค์ประกอบที่กดได้ มีสถานะครบทั้ง 4 รูปแบบ: Default, Hover, Active, Disabled (พร้อมเคอร์เซอร์ `not-allowed` เมื่อไม่พร้อมใช้งาน)
+13. **Inline Validation & Feedback**: แจ้งข้อผิดพลาดในการกรอกข้อมูลทันทีที่ช่องนั้น ๆ (Inline field error) ไม่ใช่รอจน submit แล้วเด้ง error รวม และมีการแจ้งผลสำเร็จ (Toast/Alert) ชัดเจน
+14. **Overlays & Dialog Trap**: Modal, Popover, หรือ Dialog มีการจัดการ Focus Trap (กด Tab วนอยู่ข้างใน), สามารถกด `Esc` หรือคลิก Backdrop เพื่อปิดได้ และคืนโฟกัสกลับมายังปุ่มเปิดเดิม
 
-### 3. เกณฑ์การตรวจ 20 จุด (5 กลุ่มประเมิน)
+### กลุ่ม D: การจำลองการใช้งานจริงและการเข้าถึง (E2E Journey & Accessibility)
+15. **Critical User Journey Execution**: ทดสอบ Flow หลักของผู้ใช้ตั้งแต่ต้นทางจนจบภารกิจด้วย Test/Mock data บันทึกทุกจุดที่เกิด friction หรือขั้นตอนที่ไม่จำเป็น
+16. **Dead Ends & Broken Links**: ตรวจสอบหาลิงก์เสีย (404), ปุ่มที่กดแล้วไม่มี event handler ทำงาน, หน้าที่ไม่มีปุ่มกดย้อนกลับ, หรือ CLI command ที่จบการทำงานโดยไม่คืน exit code
+17. **Keyboard Only Navigation**: นำทางระบบด้วยปุ่ม `Tab`, `Shift+Tab`, `Enter`, `Space`, ลูกศร ได้ครบ 100% โดยมี Visible Focus Outline ชัดเจน (ไม่ปิด `outline: none` โดยไม่มีทางเลือกอื่น)
 
-ปรับแต่งการประเมินให้เหมาะสมกับประเภทงาน (Web / App / CLI / API):
-
-#### กลุ่ม A: ความสม่ำเสมอของดีไซน์และอินเทอร์เฟซ (Design & Interface Consistency)
-1. **Design System & Foundation**: มีแนวทางสี ฟอนต์ ขนาดตัวอักษร ระยะห่าง มุมโค้ง หรือ Design Tokens ที่ชัดเจนหรือไม่ หากไม่มี ให้เสนอร่าง `DESIGN.md` (แต่ยังไม่สร้างไฟล์)
-2. **Visual Hierarchy & Contrast**: สีและลำดับขนาดตัวอักษรช่วยแยกแยะหัวข้อสำคัญและ Call-to-Action (CTA) ชัดเจนหรือไม่
-3. **Component Consistency**: ปุ่ม การ์ด ฟอร์ม หรือ Output format ประเภทเดียวกันมีหน้าตาและพฤติกรรมสม่ำเสมอหรือไม่
-4. **Density & Focus**: หน้าจอ/เอาต์พุตแน่นเกินไปหรือไม่ หรือมี visual clutter จนบดบังจุดประสงค์หลัก
-5. **Readability**: ข้อความอ่านได้ชัดเจนบนพื้นหลังที่ใช้งานจริง (ผ่านเกณฑ์คอนทราสต์ WCAG)
-
-#### กลุ่ม B: ความยืดหยุ่นและการตอบสนองต่อสภาพแวดล้อม (Responsiveness & Environment)
-6. **Layout Overflow**: การแสดงผลล้นขอบจอ มี horizontal scroll ที่ไม่พึงประสงค์ หรือ terminal text wrapping ผิดเพี้ยนหรือไม่
-7. **Navigation & Menus**: ระบบนำทาง (Navbar, Sidebar, Hamburger menu หรือ CLI subcommands) เปิด-ปิด ค้นหา และเข้าถึงง่ายหรือไม่
-8. **Touch & Click Ergonomics**: ปุ่ม ลิงก์ และองค์ประกอบที่ต้องกด มี touch target กว้างพอ (ขั้นต่ำ 44x44px) ใช้งานด้วยนิ้วหรือเมาส์สะดวกหรือไม่
-9. **Font Scaling & Resize**: เมื่อขยายขนาดหน้าจอ ซูม 200% หรือปรับขนาดฟอนต์ เลย์เอาต์และข้อความยังคงใช้งานได้ ไม่ทับซ้อนกันหรือไม่
-
-#### กลุ่ม C: สถานะการทำงานและการแจ้งเตือน (Screen & Process States)
-10. **Loading & Pending States**: มี indicator บ่งบอกชัดเจนขณะรอข้อมูล (Spinner, Skeleton, Progress bar หรือ Loading text) หรือไม่
-11. **Empty & Error Handling**: เมื่อไม่มีข้อมูล (Empty State) หรือเกิดข้อผิดพลาด ผู้ใช้ได้รับคำแนะนำที่ชัดเจนว่าควรทำอะไรต่อหรือไม่
-12. **Interactive States**: ปุ่มและจุดคลิกมีสถานะครบถ้วน (Hover, Active, Focus, Disabled) หรือไม่
-13. **Validation & Feedback**: ฟอร์มหรือคำสั่งแจ้ง error ใกล้จุดที่ผิดพลาด และแจ้งผลลัพธ์ (Success / Failure) ชัดเจนหลังประมวลผลหรือไม่
-14. **Modals & Overlays**: Dialog, Dropdown, Tabs หรือ Prompt ย่อยเปิด-ปิดได้สะดวก โฟกัสไม่หลุด และไม่ทำให้ผู้ใช้สับสน
-
-#### กลุ่ม D: การจำลองการใช้งานจริง (End-to-End Simulation)
-15. **Critical User Journey**: ทดสอบเส้นทางหลักของผู้ใช้ตั้งแต่ต้นจนจบด้วย mock data แล้วระบุจุดสะดุดหรือขัดข้อง
-16. **Broken Links & Dead Ends**: มีปุ่มที่กดแล้วไม่มีผลลัพธ์ ลิงก์เสีย (404) หรือ dead-end screen ที่ไปต่อไม่ได้หรือไม่
-17. **Keyboard & Accessibility**: รองรับการใช้งานผ่านคีย์บอร์ด (Tab navigation, Enter, Esc) พร้อม visible focus indicator ที่สังเกตเห็นได้ง่าย
-
-#### กลุ่ม E: ความพร้อมก่อนเผยแพร่ (Production Readiness)
-18. **Value Proposition Clarity**: ผู้ใช้เข้าใจได้ทันทีภายใน 5 วินาทีหรือไม่ว่าผลิตภัณฑ์นี้คืออะไรและช่วยแก้ปัญหาอะไร
-19. **Primary Action Focus**: ในแต่ละหน้าหรือแต่ละขั้นตอน มีการกระทำหลัก (Primary Action) ที่เด่นชัดหรือไม่
-20. **Assets & Metadata Completeness**: จัดการ Title, Meta description, Favicon, OpenGraph, ตัวอย่าง Placeholder (Lorem Ipsum), และ console errors/warnings ตกค้างครบถ้วนหรือไม่
+### กลุ่ม E: ความพร้อมก่อนเผยแพร่จริง (Production Readiness & Security)
+18. **5-Second Value Proposition**: เมื่อผู้ใช้ใหม่เปิดหน้าแรกหรือเรียกคำสั่ง `--help` เข้าใจได้ทันทีภายใน 5 วินาทีหรือไม่ว่าเครื่องมือนี้คืออะไรและช่วยอะไรเขา
+19. **Single Primary Call-to-Action (CTA)**: ในแต่ละหน้าหรือแต่ละขั้นตอน มีการกระทำหลัก 1 อย่างที่โดดเด่น ไม่แข่งขันกับปุ่มอื่นจนทำให้เกิด Analysis Paralysis
+20. **Hygiene, Metadata & Console Cleanliness**:
+    - ตรวจสอบ Title, Meta description, Favicon, OpenGraph tags
+    - ไม่มีข้อความตัวอย่างหลงเหลือ (เช่น "Lorem Ipsum", "TODO", "ทดสอบ")
+    - Developer Console / STDOUT / STDERR ต้องไม่มีข้อผิดพลาด (Zero unhandled exceptions, zero broken asset 404s)
 
 ---
 
-### 4. รูปแบบรายงานผลการตรวจ (Audit Report Format)
+## 4. มาตรฐานหลักฐานและรูปแบบรายงาน (Evidence Standard & Report Format)
 
-รายงานผลต้องใช้โครงสร้างดังนี้:
+ข้อบกพร่องทุกข้อที่ระบุในรายงาน **ต้องมีหลักฐานชัดเจน** เช่น:
+- **Web/App**: Screenshot path, HTTP Status code, Network payload, Console error log
+- **CLI/API**: Command ที่ใช้รัน, Exit code, STDOUT/STDERR log, Response JSON
+
+### โครงสร้างรายงานมาตรฐาน
 
 ```markdown
-# รายงานผลการตรวจคุณภาพ (Product Quality Audit Report)
+# รายงานผลการตรวจสอบคุณภาพก่อนเผยแพร่ (Pre-Release Quality Audit Report)
 
-## 1. สรุปภาพรวม
-- ผ่าน: [จำนวน] จุด
-- พบปัญหา: [จำนวน] จุด
-- ยังไม่ได้ทดสอบ: [จำนวน] จุด
+## 1. ผลการตรวจสรุป (Executive Summary)
+- ผ่านการตรวจสอบ: [X] รายการ
+- ตรวจพบปัญหา (Issues): [Y] รายการ (สูง: [A], กลาง: [B], ต่ำ: [C])
+- ยังไม่ได้ทดสอบ (Untested): [Z] รายการ (ระบุเหตุผล เช่น ขาดสิทธิ์การเข้าถึง)
 
-## 2. ตารางรายการปัญหาที่ตรวจพบจริง (Issues Found)
-| ความสำคัญ (สูง/กลาง/ต่ำ) | หน้า / ไฟล์ / ส่วนงาน | สิ่งที่พบ | ขั้นตอนการทำซ้ำ / หลักฐาน | ผลกระทบต่อผู้ใช้ | วิธีแก้ที่เสนอ |
-|---|---|---|---|---|---|
-| สูง | ... | ... | ... | ... | ... |
+## 2. ตารางรายการปัญหาที่ตรวจพบจริง (Verified Defects)
+| รหัส | ความสำคัญ | หน้า / โมดูล / ไฟล์ | ปัญหาที่พบ | หลักฐานการทดสอบ (Log/Code/Reproduction) | ผลกระทบต่อผู้ใช้ | แนวทางแก้ไขทางเทคนิค |
+|---|---|---|---|---|---|---|
+| ISS-01 | สูง | `/checkout` | ปุ่ม Submit กดแล้วไม่ตอบสนองเมื่อไม่มีรูป | Console error: `TypeError: Cannot read properties of undefined` | ผู้ใช้ไม่สามารถสั่งซื้อสินค้าได้ | เพิ่ม Optional Chaining และ fallback image |
 
-*(เรียงลำดับจากปัญหาที่ขัดขวางงานหลักของผู้ใช้ขึ้นก่อนเสมอ)*
+*(หมายเหตุ: เรียงลำดับจากปัญหาความสำคัญสูงที่ขัดขวาง Core User Journey ขึ้นก่อน)*
 
-## 3. ข้อเสนอแนะเพื่อการปรับปรุง (Recommendations)
-- [ข้อเสนอแนะเพิ่มเติมที่อยู่นอกเหนือจากข้อผิดพลาดโดยตรง เช่น ประสิทธิภาพ หรือความสวยงาม]
+## 3. ข้อเสนอแนะเชิงประสบการณ์และสถาปัตยกรรม (UX & Architectural Improvements)
+- [REC-01] ข้อเสนอแนะด้าน Performance หรือความสวยงามที่ไม่ได้เป็น bug โดยตรง
 
-## 4. แผนการแก้ไขตามลำดับ (Remediation Plan)
-1. **ลำดับที่ 1**: [รายละเอียดการแก้] -> ไฟล์ที่คาดว่าต้องแก้: `path/to/file`
-2. **ลำดับที่ 2**: [รายละเอียดการแก้] -> ไฟล์ที่คาดว่าต้องแก้: `path/to/file`
+## 4. แผนปฏิบัติการแก้ไขตามลำดับ (Remediation Roadmap)
+1. **[ISS-01]** ... -> คาดว่าจะแก้ไขไฟล์: `src/components/Checkout.tsx`
+2. **[ISS-02]** ... -> คาดว่าจะแก้ไขไฟล์: `src/styles/theme.css`
 
 ---
-> หยุดการดำเนินการ: กรุณาพิมพ์ **"อนุมัติให้แก้"** พร้อมระบุรายการที่ต้องการให้ดำเนินการแก้ไข
+> **หยุดกระบวนการชั่วคราวตามมาตรการความปลอดภัย**:
+> กรุณาพิมพ์ **"อนุมัติให้แก้"** พร้อมระบุรหัสปัญหา เช่น *"อนุมัติให้แก้ ISS-01, ISS-02"* เพื่อเริ่มดำเนินการแก้ไขเฉพาะจุด
 ```
 
 ---
 
-### 5. การดำเนินการหลังได้รับอนุมัติ (Post-Approval Execution)
-เมื่อผู้ใช้อนุมัติให้แก้ไข:
-1. แก้ไขเฉพาะรายการที่ผู้ใช้เลือกเท่านั้น
-2. ทดสอบซ้ำ (Verify) ทันทีหลังแก้ไข
-3. สรุปรายงานการแก้ไข: แก้ไขอะไรไปบ้าง, ผ่านการทดสอบใด, และยังเหลือข้อจำกัดหรือสิ่งที่ต้องทำเพิ่มอะไรบ้าง
-4. **ห้ามทำการ Deploy** โดยไม่ได้รับคำสั่งแยกต่างหาก
+## 5. กระบวนการหลังได้รับอนุมัติ (Execution & Verification Protocol)
+
+เมื่อผู้ใช้พิมพ์อนุมัติ:
+1. **แก้ไขแบบจำกัดขอบเขต (Surgical Edits)**: แก้ไขเฉพาะไฟล์และรายการที่ระบุเท่านั้น ห้ามแตะต้องส่วนอื่นที่ไม่เกี่ยวข้อง
+2. **การทดสอบซ้ำทันที (Immediate Re-Verification)**: รันการทดสอบในจุดที่แก้ไข และเก็บหลักฐานว่าปัญหาได้รับการแก้ไขแล้วจริง
+3. **สรุปรายงานปิดงาน (Completion Report)**: รายงานไฟล์ที่ถูกแก้ไข, ผลการทดสอบยืนยัน, และประเด็นที่ยังคงเป็นข้อจำกัด (ถ้ามี)
+4. **ห้าม Deploy หรือ Push ขึ้น Remote เด็ดขาด** เว้นแต่จะมีคำสั่งอนุมัติแยกต่างหากอย่างชัดเจน
